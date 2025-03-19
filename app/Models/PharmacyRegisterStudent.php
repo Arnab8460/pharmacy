@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class PharmacyRegisterStudent extends Model
+{
+    use HasFactory;
+    protected $table = 'pharmacy_register_student';
+    protected $primaryKey = 's_id';
+    protected $fillable = [
+        's_appl_form_num',
+        's_first_name',
+        's_middle_name',
+        's_last_name',
+        's_candidate_name',
+        's_father_name',
+        's_mother_name',
+        's_dob',
+        's_aadhar_no',
+        's_aadhar_original',
+        's_phone',
+        's_email',
+        's_gender',
+        's_religion',
+        's_caste',
+        's_tfw',
+        's_ews',
+        's_llq_rank',
+        's_llq',
+        's_exsm',
+        's_pwd',
+        's_gen_rank',
+        's_sc_rank',
+        's_st_rank',
+        's_obca_rank',
+        's_obcb_rank',
+        's_tfw_rank',
+        's_ews_rank',
+        's_exsm_rank',
+        's_pwd_rank',
+        's_photo',
+        's_sign',
+        's_home_district',
+        's_schooling_district',
+        's_state_id',
+        's_alloted_category',
+        's_alloted_round',
+        's_choice_id',
+        's_trade_code',
+        's_inst_code',
+        's_eligible_category',
+        's_auto_reject_round',
+        's_rejected_by',
+        'address',
+        'ps',
+        'po',
+        'pin',
+        'is_married',
+        'is_kanyashree',
+        's_admited_status',
+        's_auto_reject',
+        's_seat_block',
+        'last_round_adm_status',
+        'is_profile_updated',
+        'is_choice_fill_up',
+        'is_lock_manual',
+        'is_lock_auto',
+        'is_payment',
+        'is_choice_downloaded',
+        'is_upgrade_payment',
+        'is_allotment_accept',
+        'is_alloted',
+        'is_upgrade',
+        's_remarks',
+        'is_active',
+        's_uuid',
+        'is_registration_payment',
+        'is_registration_verified',
+        "physic_marks",
+        "chemistry_marks",
+        "biology_marks",
+        "mathematics_marks",
+    ];
+    
+}
