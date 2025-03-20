@@ -1543,6 +1543,18 @@ class CommonController extends Controller
                     'message' => 'This Aadhaar number is already registered.'
                 ], 409);
             }
+            $uuid=$request->s_uuid;
+            $firstPart = substr($uuid, 0, -4);
+            $last4 = substr($uuid, -4);
+            $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
+            $maskedUUID = $encryptedPart . $last4;
+            if(PharmacyRegisterStudent::where('s_uuid',$request->s_uuid)->exists()){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This UUID is already registered.'
+                ], 409);
+            
+            }
             $student_photo = $request->file('student_photo')->store('uploads', 'public');
             $student_sign = $request->file('student_sign')->store('uploads', 'public');
             $register = PharmacyRegisterStudent::create([
@@ -1611,7 +1623,7 @@ class CommonController extends Controller
                 'is_upgrade'=>$request->is_upgrade,
                 's_remarks'=>$request->s_remarks,
                 'is_active'=>$request->is_active,
-                's_uuid'=>$request->s_uuid,
+                's_uuid'=>$maskedUUID,
                 'is_registration_payment'=>$request->is_registration_payment,
                 'is_registration_verified'=>$request->is_registration_verified,
                 'physic_marks'=>$request->physic_marks,
