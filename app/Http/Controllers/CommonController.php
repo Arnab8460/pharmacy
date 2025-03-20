@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\URL;
 use App\Http\Resources\EligibilityResource;
 use DateTime;
 use App\Models\PharmacyAppl_ElgbExam;
+use Illuminate\Support\Facades\Crypt;
 
 
 
@@ -1412,27 +1413,7 @@ class CommonController extends Controller
     }
     public function registerstudent(Request $request)
     {
-        try {
-            $currentDateTime = date('Y-m-d H:i:s');
-            $schedule = Schedule::where('sch_event', 'APPLICATION')
-                ->where('sch_round', 1)
-                ->first();
-            if (!$schedule || $currentDateTime < $schedule->sch_start_dt || $currentDateTime > $schedule->sch_end_dt) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Your date is expired. You can no longer submit the form.'
-                ], 400);
-            }
-            $year = date('Y');
-            $lastStudent = PharmacyRegisterStudent::latest('s_id')->first();
-            if ($lastStudent && preg_match('/PHARMA' . $year . '(\d+)/', $lastStudent->s_appl_form_num, $matches)) {
-                $lastNumber = (int) $matches[1];
-                $nextNumber = $lastNumber + 1;
-            } else {
-                $nextNumber = 1;
-            }
-            // Generate the new application form number
-            $s_appl_form_num = 'PHARMA' . $year . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        try{
             $request->validate([
                 'student_first_name' => ['required'],
                 'student_middle_name' => ['nullable'],
@@ -1442,7 +1423,6 @@ class CommonController extends Controller
                 'student_mother_name' => ['required'],
                 'student_dob' => ['required'],
                 'student_aadhar_no' => ['required'],
-                'student_aadhar_original' => ['required'],
                 'student_phone' => ['required', 'digits:10'],
                 'student_email' => ['required', 'email'],
                 'student_gender' => ['required'],
@@ -1507,6 +1487,39 @@ class CommonController extends Controller
                 'mathematics_marks' => ['required'],
                 'exam_elgb_code'=>['required']
             ]);
+            $currentDateTime = date('Y-m-d H:i:s');
+            $schedule = Schedule::where('sch_event', 'APPLICATION')
+                ->where('sch_round', 1)
+                ->first();
+            if (!$schedule || $currentDateTime < $schedule->sch_start_dt || $currentDateTime > $schedule->sch_end_dt) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your date is expired. You can no longer submit the form.'
+                ], 400);
+            }
+            $year = date('Y');
+            $lastStudent = PharmacyRegisterStudent::latest('s_id')->first();
+            if ($lastStudent && preg_match('/PHARMA' . $year . '(\d+)/', $lastStudent->s_appl_form_num, $matches)) {
+                $lastNumber = (int) $matches[1];
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 1;
+            }
+            // Generate the new application form number
+            $s_appl_form_num = 'PHARMA' . $year . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+            if (PharmacyRegisterStudent::where('s_phone', $request->student_phone)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This mobile number is already registered.'
+                ], 409);
+            }
+    
+            if (PharmacyRegisterStudent::where('s_email', $request->student_email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This email is already registered.'
+                ], 409);
+            }
             $dob = new DateTime($request->student_dob);
             $currentYear = date('Y');
             $requiredDate = new DateTime("31-12-$currentYear");
@@ -1516,6 +1529,20 @@ class CommonController extends Controller
                     'success' => false,
                     'message' => 'The candidate must be at least 17 years old on or before 31st December of this year.'
                 ], 400);
+            }
+            $fullAadhar = $request->student_aadhar_no;
+            $firstPart = substr($fullAadhar, 0, -4);   
+            $last4 = substr($fullAadhar, -4);        
+            // $encryptedPart = Crypt::encryptString($firstPart);
+            $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
+            $maskedAadhar = $encryptedPart . $last4;
+
+            $aadharexists = PharmacyRegisterStudent::where('s_aadhar_original', $request->student_aadhar_no)->exists();
+            if ($aadharexists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This Aadhaar number is already registered.'
+                ], 409);
             }
             $student_photo = $request->file('student_photo')->store('uploads', 'public');
             $student_sign = $request->file('student_sign')->store('uploads', 'public');
@@ -1528,8 +1555,8 @@ class CommonController extends Controller
                 's_father_name'=>$request->student_father_name,
                 's_mother_name'=>$request->student_mother_name,
                 's_dob'=>$request->student_dob,
-                's_aadhar_no'=>$request->student_aadhar_no,
-                's_aadhar_original'=>$request->student_aadhar_original,
+                's_aadhar_no'=> $maskedAadhar,
+                's_aadhar_original'=>$fullAadhar,
                 's_phone'=>$request->student_phone,
                 's_email'=>$request->student_email,
                 's_gender'=>$request->student_gender,
@@ -1591,9 +1618,7 @@ class CommonController extends Controller
                 'physic_marks'=>$request->physic_marks,
                 'chemistry_marks'=>$request->chemistry_marks,
                 'biology_marks'=>$request->biology_marks,
-                'mathematics_marks'=>$request->mathematics_marks,
-
-                
+                'mathematics_marks'=>$request->mathematics_marks, 
             ]);
 
             if (!$register) {
@@ -1611,7 +1636,6 @@ class CommonController extends Controller
             }
 
             DB::commit();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Form submitted successfully!',
@@ -1636,25 +1660,25 @@ class CommonController extends Controller
     }
         
 
-        public function eligibility(Request $request)
-        {
-            $course_code=$request->course_code;
-            $eligible_list=PharmacyEligiblity::where('course_code',$course_code)->where('is_active','1')->get();
-            if (sizeof($eligible_list) > 0) {
-                $reponse = array(
-                    'error'     =>  false,
-                    'message'   =>  'Data found',
-                    'count'     =>   sizeof($eligible_list),
-                    'eligibilities'    =>  EligibilityResource::collection($eligible_list)
-                );
-                return response(json_encode($reponse), 200);
-            } else {
-                $reponse = array(
-                    'error'     =>  true,
-                    'message'   =>  'No data available'
-                );
-                return response(json_encode($reponse), 404);
-            }
+    public function eligibility(Request $request)
+    {
+        $course_code=$request->course_code;
+        $eligible_list=PharmacyEligiblity::where('course_code',$course_code)->where('is_active','1')->get();
+        if (sizeof($eligible_list) > 0) {
+            $reponse = array(
+                'error'     =>  false,
+                'message'   =>  'Data found',
+                'count'     =>   sizeof($eligible_list),
+                'eligibilities'    =>  EligibilityResource::collection($eligible_list)
+            );
+            return response(json_encode($reponse), 200);
+        } else {
+            $reponse = array(
+                'error'     =>  true,
+                'message'   =>  'No data available'
+            );
+            return response(json_encode($reponse), 404);
+        }
 
 
     }
