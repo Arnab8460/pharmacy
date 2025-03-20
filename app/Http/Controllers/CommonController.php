@@ -1532,8 +1532,7 @@ class CommonController extends Controller
             }
             $fullAadhar = $request->student_aadhar_no;
             $firstPart = substr($fullAadhar, 0, -4);   
-            $last4 = substr($fullAadhar, -4);        
-            // $encryptedPart = Crypt::encryptString($firstPart);
+            $last4 = substr($fullAadhar, -4); 
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedAadhar = $encryptedPart . $last4;
 
