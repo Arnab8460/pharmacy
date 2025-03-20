@@ -1418,7 +1418,6 @@ class CommonController extends Controller
                 'student_first_name' => ['required'],
                 'student_middle_name' => ['nullable'],
                 'student_last_name' => ['required'],
-                'student_candidate_name' => ['required'],
                 'student_father_name' => ['required'],
                 'student_mother_name' => ['required'],
                 'student_dob' => ['required'],
@@ -1536,6 +1535,13 @@ class CommonController extends Controller
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedAadhar = $encryptedPart . $last4;
 
+            //md5 use kore
+            // $fullAadhar = $request->student_aadhar_no;
+            // $last4 = substr($fullAadhar, -4);
+            // $firstPart = substr($fullAadhar, 0, -4);
+            // $hashedPart = hash('md5', $firstPart); 
+            // $maskedAadhar = $hashedPart . $last4;
+            
             $aadharexists = PharmacyRegisterStudent::where('s_aadhar_original', $request->student_aadhar_no)->exists();
             if ($aadharexists) {
                 return response()->json([
@@ -1548,7 +1554,13 @@ class CommonController extends Controller
             $last4 = substr($uuid, -4);
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedUUID = $encryptedPart . $last4;
-            if(PharmacyRegisterStudent::where('s_uuid',$request->s_uuid)->exists()){
+            //md5 use kore
+            // $uuid = $request->s_uuid;
+            // $last4 = substr($uuid, -4);
+            // $firstPart = substr($uuid, 0, -4);
+            // $hashedPart = hash('md5', $firstPart);  
+            // $maskedUUID = $hashedPart . $last4;
+            if(PharmacyRegisterStudent::where('s_uuid',$maskedUUID)->exists()){
                 return response()->json([
                     'success' => false,
                     'message' => 'This UUID is already registered.'
@@ -1559,17 +1571,21 @@ class CommonController extends Controller
             $student_sign = $request->file('student_sign')->store('uploads', 'public');
             $register = PharmacyRegisterStudent::create([
                 's_appl_form_num'=>$s_appl_form_num,
-                's_first_name'=>$request->student_first_name,
-                's_middle_name'=>$request->student_middle_name,
-                's_last_name'=>$request->student_last_name,
-                's_candidate_name'=>$request->student_candidate_name,
-                's_father_name'=>$request->student_father_name,
-                's_mother_name'=>$request->student_mother_name,
+                's_first_name'=>trim($request->student_first_name),
+                's_middle_name'=>trim($request->student_middle_name),
+                's_last_name'=>trim($request->student_last_name),
+                's_candidate_name'=>trim($request->student_first_name) 
+                . ($request->student_middle_name ? ' ' . trim($request->student_middle_name) : '') 
+                . ' ' . trim($request->student_last_name),
+                's_father_name'=>trim($request->student_father_name),
+                's_mother_name'=>trim($request->student_mother_name),
                 's_dob'=>$request->student_dob,
                 's_aadhar_no'=> $maskedAadhar,
                 's_aadhar_original'=>$fullAadhar,
-                's_phone'=>$request->student_phone,
-                's_email'=>$request->student_email,
+                // 's_phone'=>$request->student_phone,
+                's_phone'=>trim($request->student_phone),
+                // 's_email'=>$request->student_email,
+                's_email'=>trim($request->student_email),
                 's_gender'=>$request->student_gender,
                 's_religion'=>$request->student_religion,
                 's_caste'=>$request->student_caste,
@@ -1590,8 +1606,9 @@ class CommonController extends Controller
                 's_pwd_rank'=>$request->s_pwd_rank,
                 's_photo' => $student_photo,
                 's_sign' => $student_sign,
-                's_home_district'=>$request->student_home_dist,
-                's_schooling_district'=>$request->student_schooling_dist,
+                // 's_home_district'=>$request->student_home_dist,
+                's_home_district'=> trim($request->student_home_dist),
+                's_schooling_district'=>trim($request->student_schooling_dist),
                 's_state_id'=>$request->student_state_id,
                 's_alloted_category'=>$request->student_alloted_category,
                 's_alloted_round'=>$request->student_alloted_round,
@@ -1601,12 +1618,14 @@ class CommonController extends Controller
                 's_eligible_category'=>$request->student_eligible_category,
                 's_auto_reject_round'=>$request->student_auto_rejected_round,
                 's_rejected_by'=>$request->student_rejected_by,
-                'address'=>$request->student_address,
+                // 'address'=>$request->student_address,
+                'address'=>trim($request->student_address),
                 'ps'=>$request->student_police_station,
                 'po'=>$request->student_post_office,
-                'pin'=>$request->student_pin_no,
+                'pin'=>trim($request->student_pin_no),
                 'is_married'=>$request->is_married,
-                'is_kanyashree'=>$request->is_kanyashree,
+                // 'is_kanyashree'=>$request->is_kanyashree,
+                'is_kanyashree' => isset($is_kanyashree) ? $is_kanyashree : null,
                 's_admited_status'=>$request->s_admited_status,
                 's_auto_reject'=>$request->s_auto_reject,
                 's_seat_block'=>$request->s_seat_block,
