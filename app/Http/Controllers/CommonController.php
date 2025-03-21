@@ -1506,7 +1506,7 @@ class CommonController extends Controller
                 ], 400);
             }
             $year = date('Y');
-            $lastStudent = PharmacyRegisterStudent::latest('s_id')->first();
+            $lastStudent = RegisterStudent::latest('s_id')->first();
             if ($lastStudent && preg_match('/PHARMA' . $year . '(\d+)/', $lastStudent->s_appl_form_num, $matches)) {
                 $lastNumber = (int) $matches[1];
                 $nextNumber = $lastNumber + 1;
@@ -1537,7 +1537,7 @@ class CommonController extends Controller
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedUUID = $encryptedPart . $last4;
            
-            if(PharmacyRegisterStudent::where('s_uuid',$maskedUUID)->exists()){
+            if(RegisterStudent::where('s_uuid',$maskedUUID)->exists()){
                 return response()->json([
                     'success' => false,
                     'message' => 'This UUID is already registered.'
@@ -1546,7 +1546,7 @@ class CommonController extends Controller
             }
             $student_photo = $request->file('student_photo')->store('uploads', 'public');
             $student_sign = $request->file('student_sign')->store('uploads', 'public');
-            $register = PharmacyRegisterStudent::create([
+            $register = RegisterStudent::create([
                 's_appl_form_num'=>$s_appl_form_num,
                 's_first_name'=>trim($request->student_first_name),
                 's_middle_name'=>trim($request->student_middle_name),
