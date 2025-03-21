@@ -1351,79 +1351,80 @@ class CommonController extends Controller
         }
     }
     //AD
-    public function fromsubmit(Request $request)
-    {
-        try {
-            $request->validate([
-                'name' => ['required'],
-                'email' => ['required', 'email'],
-                'mobile' => ['required', 'digits:10'],
-                'image' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
-            ]);
+    // public function fromsubmit(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'name' => ['required'],
+    //             'email' => ['required', 'email'],
+    //             'mobile' => ['required', 'digits:10'],
+    //             'image' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+    //         ]);
 
-            $filePath = $request->file('image')->store('uploads', 'public');
-            $test = Test::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'mobile' => $request->mobile,
-                'image' => $filePath,
-            ]);
+    //         $filePath = $request->file('image')->store('uploads', 'public');
+    //         $test = Test::create([
+    //             'name' => $request->name,
+    //             'email' => $request->email,
+    //             'mobile' => $request->mobile,
+    //             'image' => $filePath,
+    //         ]);
 
-            if (!$test) {
-                return response()->json(['success' => false, 'message' => 'Failed to insert data.'], 500);
-            }
+    //         if (!$test) {
+    //             return response()->json(['success' => false, 'message' => 'Failed to insert data.'], 500);
+    //         }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Form submitted successfully!',
-                'data' => $test
-            ], 201);
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Form submitted successfully!',
+    //             'data' => $test
+    //         ], 201);
 
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors()
-            ], 422);
-        }
-    }
-    public function getdata($id)
-    {
-        if (!is_numeric($id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid ID provided'
-            ], 400);
-        }
-        $test = Test::find($id);
-        if (!$test) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data not found'
-            ], 404);
-        }
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'name' => $test->name,
-                'email' => $test->email,
-                'mobile' => $test->mobile,
-                'image' => URL::to("storage/{$test->image}")
-            ]
-        ], 200);
-    }
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     }
+    // }
+    // public function getdata($id)
+    // {
+    //     if (!is_numeric($id)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Invalid ID provided'
+    //         ], 400);
+    //     }
+    //     $test = Test::find($id);
+    //     if (!$test) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Data not found'
+    //         ], 404);
+    //     }
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => [
+    //             'name' => $test->name,
+    //             'email' => $test->email,
+    //             'mobile' => $test->mobile,
+    //             'image' => URL::to("storage/{$test->image}")
+    //         ]
+    //     ], 200);
+    // }
+
     public function registerstudent(Request $request)
     {
         try{
-            $request->validate([
+            $validated = Validator::make($request->all(),[
                 'student_first_name' => ['required'],
                 'student_middle_name' => ['nullable'],
                 'student_last_name' => ['required'],
                 'student_father_name' => ['required'],
                 'student_mother_name' => ['required'],
                 'student_dob' => ['required'],
-                'student_aadhar_no' => ['required'],
-                'student_phone' => ['required', 'digits:10'],
-                'student_email' => ['required', 'email'],
+                'student_aadhar_no' => ['required', 'unique:pharmacy_register_student,s_aadhar_original'],
+                'student_phone' => ['required', 'digits:10', 'unique:pharmacy_register_student,s_phone'],
+                'student_email' => ['required', 'email', 'unique:pharmacy_register_student,s_email'],
                 'student_gender' => ['required'],
                 'student_religion' => ['required'],
                 'student_caste'=>['required'],
@@ -1486,6 +1487,14 @@ class CommonController extends Controller
                 'mathematics_marks' => ['required'],
                 'exam_elgb_code'=>['required']
             ]);
+
+            if($validated->fails()){
+                return response()->json([
+                    'error' => true,
+                    'message' => $validated->errors()->first()
+                ], 422);   
+            }
+
             $currentDateTime = date('Y-m-d H:i:s');
             $schedule = Schedule::where('sch_event', 'APPLICATION')
                 ->where('sch_round', 1)
@@ -1506,19 +1515,6 @@ class CommonController extends Controller
             }
             // Generate the new application form number
             $s_appl_form_num = 'PHARMA' . $year . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
-            if (PharmacyRegisterStudent::where('s_phone', $request->student_phone)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This mobile number is already registered.'
-                ], 409);
-            }
-    
-            if (PharmacyRegisterStudent::where('s_email', $request->student_email)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This email is already registered.'
-                ], 409);
-            }
             $dob = new DateTime($request->student_dob);
             $currentYear = date('Y');
             $requiredDate = new DateTime("31-12-$currentYear");
@@ -1535,31 +1531,12 @@ class CommonController extends Controller
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedAadhar = $encryptedPart . $last4;
 
-            //md5 use kore
-            // $fullAadhar = $request->student_aadhar_no;
-            // $last4 = substr($fullAadhar, -4);
-            // $firstPart = substr($fullAadhar, 0, -4);
-            // $hashedPart = hash('md5', $firstPart); 
-            // $maskedAadhar = $hashedPart . $last4;
-            
-            $aadharexists = PharmacyRegisterStudent::where('s_aadhar_original', $request->student_aadhar_no)->exists();
-            if ($aadharexists) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This Aadhaar number is already registered.'
-                ], 409);
-            }
             $uuid=$request->s_uuid;
             $firstPart = substr($uuid, 0, -4);
             $last4 = substr($uuid, -4);
             $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
             $maskedUUID = $encryptedPart . $last4;
-            //md5 use kore
-            // $uuid = $request->s_uuid;
-            // $last4 = substr($uuid, -4);
-            // $firstPart = substr($uuid, 0, -4);
-            // $hashedPart = hash('md5', $firstPart);  
-            // $maskedUUID = $hashedPart . $last4;
+           
             if(PharmacyRegisterStudent::where('s_uuid',$maskedUUID)->exists()){
                 return response()->json([
                     'success' => false,
@@ -1582,9 +1559,7 @@ class CommonController extends Controller
                 's_dob'=>$request->student_dob,
                 's_aadhar_no'=> $maskedAadhar,
                 's_aadhar_original'=>$fullAadhar,
-                // 's_phone'=>$request->student_phone,
                 's_phone'=>trim($request->student_phone),
-                // 's_email'=>$request->student_email,
                 's_email'=>trim($request->student_email),
                 's_gender'=>$request->student_gender,
                 's_religion'=>$request->student_religion,
@@ -1624,8 +1599,8 @@ class CommonController extends Controller
                 'po'=>$request->student_post_office,
                 'pin'=>trim($request->student_pin_no),
                 'is_married'=>$request->is_married,
-                // 'is_kanyashree'=>$request->is_kanyashree,
-                'is_kanyashree' => isset($is_kanyashree) ? $is_kanyashree : null,
+                'is_kanyashree'=>$request->is_kanyashree,
+                // 'is_kanyashree' => isset($is_kanyashree) ? $is_kanyashree : null,
                 's_admited_status'=>$request->s_admited_status,
                 's_auto_reject'=>$request->s_auto_reject,
                 's_seat_block'=>$request->s_seat_block,
@@ -1688,7 +1663,6 @@ class CommonController extends Controller
             ], 500);
         }
     }
-        
 
     public function eligibility(Request $request)
     {

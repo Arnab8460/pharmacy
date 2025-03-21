@@ -201,8 +201,9 @@ Route::get('test-seat', function () {
             ];
         })->sortBy('inst_code')->values();
 });
-Route::post('fromsubmit',[CommonController::class,'fromsubmit']);
-Route::get('getdata/{id}', [CommonController::class, 'getdata']);   
+// Route::post('fromsubmit',[CommonController::class,'fromsubmit']);
+// Route::get('getdata/{id}', [CommonController::class, 'getdata']);   
 Route::post('register_student', [CommonController::class, 'registerstudent']);
-// Route::post('check_elegiblity', [CommonController::class, 'checkEligibility']);
 Route::post('checkelegiblity', [CommonController::class, 'eligibility']);
+Route::post('/register_pay-now', [PaymentController::class, 'registerpayment']);
+
