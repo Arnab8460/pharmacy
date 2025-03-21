@@ -1382,7 +1382,7 @@ class PaymentController extends Controller
         auditTrail($request->student_id, $message);
         studentActivite($request->student_id, $message);
 
-        return redirect()->route('payment-fail', $user_id[1]);
+        return redirect()->route('registerpayment-fail', $user_id[1]);
     }
     
 }
