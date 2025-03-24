@@ -1526,18 +1526,23 @@ class CommonController extends Controller
                     'message' => 'The candidate must be at least 17 years old on or before 31st December of this year.'
                 ], 400);
             }
+            
             $fullAadhar = $request->student_aadhar_no;
-            $firstPart = substr($fullAadhar, 0, -4);   
-            $last4 = substr($fullAadhar, -4); 
-            $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
-            $maskedAadhar = $encryptedPart . $last4;
+            $firstPart = substr($fullAadhar, 0, -4);   // First part to encrypt
+            $last4 = substr($fullAadhar, -4);          // Last 4 digits
+            $encryptedPart = hash_hmac('sha256', $firstPart, env('APP_KEY'));
+            $shortEncrypted = substr($encryptedPart, 0, 27);
+            $randomChar = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 1);
+            $maskedAadhar = $shortEncrypted . $randomChar . $last4;
 
-            $uuid=$request->s_uuid;
-            $firstPart = substr($uuid, 0, -4);
-            $last4 = substr($uuid, -4);
-            $encryptedPart = base64_encode(openssl_encrypt($firstPart, 'aes-256-cbc', env('APP_KEY'), 0, substr(env('APP_KEY'), 0, 16)));
-            $maskedUUID = $encryptedPart . $last4;
-           
+            $uuid = $request->s_uuid;
+            $firstPart = substr($uuid, 0, -4);   // Encryptable part
+            $last4 = substr($uuid, -4);          // Last 4 digits
+            $encryptedPart = hash_hmac('sha256', $firstPart, env('APP_KEY'));
+            $shortEncrypted = substr($encryptedPart, 0, 27);
+            $randomChar = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 1);
+            $maskedUUID = $shortEncrypted . $randomChar . $last4;
+
             if(RegisterStudent::where('s_uuid',$maskedUUID)->exists()){
                 return response()->json([
                     'success' => false,
