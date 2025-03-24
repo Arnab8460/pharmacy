@@ -33,6 +33,7 @@ use App\Http\Resources\EligibilityResource;
 use DateTime;
 use App\Models\PharmacyAppl_ElgbExam;
 use Illuminate\Support\Facades\Crypt;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
@@ -1685,6 +1686,123 @@ class CommonController extends Controller
         }
 
 
+    }
+    public function getregisterdata($id)
+    {
+        if (!is_numeric($id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid ID provided'
+            ], 400);
+        }
+        $register = RegisterStudent::where('s_id', $id)->first();
+        if (!$register) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No data found'
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => [
+                's_first_name'=>$register->s_first_name,
+                's_middle_name' =>$register->s_middle_name,
+                's_last_name'=>$register->s_last_name,
+                's_candidate_name'=>$register->s_candidate_name,
+                's_father_name'=>$register->s_father_name,
+                's_mother_name'=>$register->s_mother_name,
+                's_dob'=>$register->s_dob,
+                's_aadhar_original'=>$register->s_aadhar_original,
+                's_phone'=>$register->s_phone,
+                's_email'=>$register->s_email,
+                's_gender'=>$register->s_gender,
+                's_religion'=>$register->s_religion,
+                's_caste'=>$register->s_caste,
+                's_photo'=>URL::to("storage/{$register->s_photo}"),
+                's_sign'=>URL::to("storage/{$register->s_sign}"),
+                's_home_district'=>$register->s_home_district,
+                's_schooling_district'=>$register->s_schooling_district,
+                's_state_id'=>$register->s_state_id,
+                's_alloted_category'=>$register->s_alloted_category,
+                's_alloted_round'=>$register->s_alloted_round,
+                's_choice_id'=>$register->s_choice_id,
+                's_trade_code'=>$register->s_trade_code,
+                's_inst_code'=>$register->s_inst_code,
+                's_eligible_category'=>$register->s_eligible_category,
+                'address'=>$register->address,
+                'ps'=>$register->ps,
+                'po'=>$register->po,
+                'pin'=>$register->pin,
+                'is_married'=>$register->is_married,
+                'is_kanyashree'=>$register->is_kanyashree,
+                's_uuid'=>$register->s_uuid,
+                'physic_marks'=>$register->physic_marks,
+                'chemistry_marks'=>$register->chemistry_marks,
+                'biology_marks'=>$register->biology_marks,
+                'mathematics_marks'=>$register->mathematics_marks
+                
+            ]
+        ], 200);
+    }
+    public function downloadReceipt($trans_id)
+    {
+        try{
+            $registerstudent = RegisterStudent::select(
+                    's_id as student_id',
+                    's_appl_form_num as application_form_number',
+                    's_candidate_name as candidate_name',
+                    's_father_name as father_name',
+                    's_mother_name as mother_name',
+                    's_dob as date_of_birth',
+                    's_aadhar_original as aadhar_number',
+                    's_phone as phone_number',
+                    's_email as email',
+                    's_gender as gender',
+                    's_religion as religion',
+                    's_caste as caste',
+                    's_gen_rank as general_rank',
+            )->where('s_appl_form_num', $trans_id)
+            ->first();
+            $payment = PaymentTransaction::where('pmnt_stud_id', $registerstudent->student_id)
+                ->where('pmnt_pay_type', 'REGISTERFEES')
+                ->where('trans_status', 'SUCCESS')
+                ->first();
+            // if($payment){
+            //     $pdf = PDF::loadView('exports.registration_receipt',[
+            //         'registerstudent' => $registerstudent,
+            //         'payment' => $payment
+            //     ]);
+            //     return $pdf->setPaper('a4', 'portrait')
+            //         ->setOption(['defaultFont' => 'sans-serif'])
+            //         ->stream('registration_receipt.pdf');
+                
+            // }else{
+            //     return response()->json([
+            //         'error' =>  true,
+            //         'message' => 'No payment found'
+            //     ], 400);
+            // }
+
+            if ($payment) {
+                $pdf = PDF::loadView('exports.registration_receipt', [
+                    'registerstudent' => $registerstudent,
+                    'payment' => $payment
+                ]);
+                return $pdf->download('registration_receipt.pdf');
+            } else {
+                return response()->json([
+                    'error' => true, 
+                    'message' => 'No payment found'],
+                    404);
+            }
+
+        }catch (Exception $e) {
+            generateLaravelLog($e);
+            return response()->json([
+                'error' =>  true,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
     
 

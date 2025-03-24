@@ -52,6 +52,7 @@
         <p><b>{{ $trans_id }}</b></p>
         <br />
         <a href="{{ env('REDIRECT_BASE_URL') }}" style="text-decoration: none;">Go To Choice Fillup Preview</a>
+        <a href="{{ route('downloadReceipt', $trans_id) }}" class="btn" target="_blank">Download Receipt</a>
     </div>
 </body>
 

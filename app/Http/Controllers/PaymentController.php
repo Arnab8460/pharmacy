@@ -1355,7 +1355,7 @@ class PaymentController extends Controller
             'is_payment' => 1
         ]);
 
-        return redirect()->route('pregisterpayment-success-redirect', $trans_id);
+        return redirect()->route('registerpayment-success-redirect', $trans_id);
     }
     public function registerpaymentFail(Request $request)
     {

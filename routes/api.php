@@ -205,5 +205,8 @@ Route::get('test-seat', function () {
 // Route::get('getdata/{id}', [CommonController::class, 'getdata']);   
 Route::post('register_student', [CommonController::class, 'registerstudent']);
 Route::post('checkelegiblity', [CommonController::class, 'eligibility']);
+Route::get('getregisterdata/{id}',[CommonController::class,'getregisterdata']);
 Route::post('/register_pay-now', [PaymentController::class, 'registerpayment']);
+Route::get('/download-receipt/{trans_id}', [CommonController::class, 'downloadReceipt']);
+
 
