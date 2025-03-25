@@ -34,6 +34,8 @@ use DateTime;
 use App\Models\PharmacyAppl_ElgbExam;
 use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\State;
+use App\Http\Resources\StateResource;
 
 
 
@@ -1352,6 +1354,85 @@ class CommonController extends Controller
         }
     }
     //AD
+    public function allStates(Request $request,$type=null)
+    {  
+        if($type=null){
+            if ($request->header('token')) {
+                $now    =   date('Y-m-d H:i:s');
+                $token_check = Token::where('t_token', '=', $request->header('token'))->where('t_expired_on', '>=', $now)->first();
+                if ($token_check) {  // check the token is expire or not
+                    $user_id = $token_check->t_user_id;
+                    $user_data = User::select('u_id', 'u_ref', 'u_role_id')->where('u_id', $user_id)->first();
+
+                    $role_url_access_id = DB::table('wbscte_other_diploma_auth_roles_permissions')->where('rp_role_id', $user_data->u_role_id)->pluck('rp_url_id');
+
+                    if (sizeof($role_url_access_id) > 0) {
+
+                        $urls = DB::table('wbscte_other_diploma_auth_urls')->where('url_visible', 1)->whereIn('url_id', $role_url_access_id)->get()->toArray();
+
+                        $url_data = array_column($urls, 'url_name');
+                        if (in_array('state-list', $url_data)) { //check url has permission or not
+                            $state_list = State::select('state_id_pk', 'state_name')->where('active_status', '1')->orderBy('state_id_pk', 'DESC')->get();
+                            if (sizeof($state_list) > 0) {
+                                $reponse = array(
+                                    'error'     =>  false,
+                                    'message'   =>  'State found',
+                                    'count'     =>   sizeof($state_list),
+                                    'states'    =>  StateResource::collection($state_list)
+                                );
+                                return response(json_encode($reponse), 200);
+                            } else {
+                                $reponse = array(
+                                    'error'     =>  true,
+                                    'message'   =>  'No state available'
+                                );
+                                return response(json_encode($reponse), 404);
+                            }
+                        } else {
+                            return response()->json([
+                                'error'     =>  true,
+                                'message'   =>   "Oops! you don't have sufficient permission"
+                            ], 403);
+                        }
+                    } else {
+                        return response()->json([
+                            'error'     =>  true,
+                            'message'   =>   "Oops! you don't have sufficient permission"
+                        ], 403);
+                    }
+                } else {
+                    return response()->json([
+                        'error'     =>  true,
+                        'message'   =>  'Unable to process your request due to invalid token'
+                    ], 401);
+                }
+            } else {
+                return response()->json([
+                    'error'     =>  true,
+                    'message'   =>  'Unable to process your request due to non availability of token'
+                ], 401);
+            }
+
+        }else{
+            $state_list = State::select('state_id_pk', 'state_name')->where('active_status', '1')->orderBy('state_id_pk', 'DESC')->get();
+            if (sizeof($state_list) > 0) {
+                $reponse = array(
+                    'error'     =>  false,
+                    'message'   =>  'State found',
+                    'count'     =>   sizeof($state_list),
+                    'states'    =>  StateResource::collection($state_list)
+                );
+                return response(json_encode($reponse), 200);
+            } else {
+                $reponse = array(
+                    'error'     =>  true,
+                    'message'   =>  'No state available'
+                );
+                return response(json_encode($reponse), 404);
+            }
+        }
+        
+    }
     // public function fromsubmit(Request $request)
     // {
     //     try {
