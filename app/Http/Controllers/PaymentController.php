@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\MgmtStudent;
 use App\Models\SpotStudent;
+use App\Models\Pharmacyfees;
 use Illuminate\Http\Request;
 use App\Models\SpotAllotment;
 use App\PaymentLib\AESEncDec;
@@ -1248,9 +1249,80 @@ class PaymentController extends Controller
         return "verification done";
     }
     //AD
-    public function registerpayment()
+    // public function registerpayment(Request $request)
+    // {
+    //     $trans_time = date('Y-m-d H:i:s');
+    //     $validated = Validator::make($request->all(), [
+    //         'student_id' => ['required'],
+    //     ]);
+
+    //     if ($validated->fails()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => $validated->errors()
+    //         ]);
+    //     }
+
+    //     $merchIdVal = env('SBI_MERCHANT_ID');
+    //     $actionUrl = env('SBI_PAYMENT_API');
+    //     $orderid = '';
+    //     for ($i = 0; $i < 10; $i++) {
+    //         $d = rand(1, 30) % 2;
+    //         $d = $d ? chr(rand(65, 90)) : chr(rand(48, 57));
+    //         $orderid .= $d;
+    //     }
+
+    //     $base_url = env('APP_URL') . '/payment/';
+    //     $success_url = "{$base_url}register_success";
+    //     $fail_url = "{$base_url}register_fail";
+    //     $key = env('SBI_PAYMENT_KEY');
+    //     $other = "REGISTERFEES_{$request->student_id}";
+    //     $marid = '5';
+    //     $merchant_order_num = $orderid;
+        
+    //     $studentregister=RegisterStudent::where('s_id', $request->student_id)->first();
+    //     if ($studentregister) {
+    //         $total_amount = match ($studentregister->s_gender) {
+    //             'MALE'   => env('REGISTER_FEES'),
+    //             'FEMALE' => env('REGISTER_FEMALE_FEES'),
+    //             default  => env('REGISTER_FEES')
+    //         };
+    //         $requestParameter = "{$merchIdVal}|DOM|IN|INR|$total_amount|$other|$success_url|$fail_url|SBIEPAY|$merchant_order_num|$marid|NB|ONLINE|ONLINE";
+    //         $EncryptTrans = encryptedString($requestParameter, $key);
+    //         $studentregister->update([
+    //             'updated_at' => now(),
+    //         ]);
+    //         PaymentTransaction::create([
+    //             'order_id' => $orderid,
+    //             'pmnt_modified_by' => $request->student_id,
+    //             'pmnt_stud_id' => $request->student_id,
+    //             'pmnt_created_on' => $trans_time,
+    //             'trans_amount' => intval($total_amount),
+    //             'pmnt_pay_type' => 'REGISTERFEES'
+    //         ]);
+    
+    //         auditTrail($request->student_id, "Payment initiated for order ID {$orderid}");
+    //         studentActivite($request->student_id, "Payment initiated for order ID {$orderid}");
+    
+    //         return response()->json([
+    //             'error' => false,
+    //             'message' => 'Payment Data',
+    //             'EncryptTrans' => $EncryptTrans,
+    //             'merchIdVal' => $merchIdVal,
+    //             'actionUrl' => $actionUrl
+    //         ]);
+    //     }else{
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'Student Not Found',
+    //         ]);
+    //     }  
+    // }
+    
+    public function registerpayment(Request $request)
     {
         $trans_time = date('Y-m-d H:i:s');
+        
         $validated = Validator::make($request->all(), [
             'student_id' => ['required'],
         ]);
@@ -1264,7 +1336,6 @@ class PaymentController extends Controller
 
         $merchIdVal = env('SBI_MERCHANT_ID');
         $actionUrl = env('SBI_PAYMENT_API');
-
         $orderid = '';
         for ($i = 0; $i < 10; $i++) {
             $d = rand(1, 30) % 2;
@@ -1279,30 +1350,46 @@ class PaymentController extends Controller
         $other = "REGISTERFEES_{$request->student_id}";
         $marid = '5';
         $merchant_order_num = $orderid;
-        $total_amount = env('REGISTER_FEES');
-        $requestParameter = "{$merchIdVal}|DOM|IN|INR|$total_amount|$other|$success_url|$fail_url|SBIEPAY|$merchant_order_num|$marid|NB|ONLINE|ONLINE";
-        $EncryptTrans = encryptedString($requestParameter, $key);
 
-        PaymentTransaction::create([
-            'order_id' => $orderid,
-            'pmnt_modified_by' => $request->student_id,
-            'pmnt_stud_id' => $request->student_id,
-            'pmnt_created_on' => $trans_time,
-            'trans_amount' => intval($total_amount),
-            'pmnt_pay_type' => 'REGISTERFEES'
-        ]);
+        $studentregister = RegisterStudent::where('s_id', $request->student_id)->first();
 
-        auditTrail($request->student_id, "Payment initiated for order ID {$orderid}");
-        studentActivite($request->student_id, "Payment initiated for order ID {$orderid}");
+        if ($studentregister) {
 
-        return response()->json([
-            'error' => false,
-            'message' => 'Payment Data',
-            'EncryptTrans' => $EncryptTrans,
-            'merchIdVal' => $merchIdVal,
-            'actionUrl' => $actionUrl
-        ]);
+            $total_amount = getFeeAmount('application', $studentregister->s_gender);
+            $requestParameter = "{$merchIdVal}|DOM|IN|INR|$total_amount|$other|$success_url|$fail_url|SBIEPAY|$merchant_order_num|$marid|NB|ONLINE|ONLINE";
+            $EncryptTrans = encryptedString($requestParameter, $key);
+
+            $studentregister->update([
+                'updated_at' => now(),
+            ]);
+
+            PaymentTransaction::create([
+                'order_id' => $orderid,
+                'pmnt_modified_by' => $request->student_id,
+                'pmnt_stud_id' => $request->student_id,
+                'pmnt_created_on' => $trans_time,
+                'trans_amount' => intval($total_amount),
+                'pmnt_pay_type' => 'REGISTERFEES'
+            ]);
+
+            auditTrail($request->student_id, "Payment initiated for order ID {$orderid}");
+            studentActivite($request->student_id, "Payment initiated for order ID {$orderid}");
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Payment Data',
+                'EncryptTrans' => $EncryptTrans,
+                'merchIdVal' => $merchIdVal,
+                'actionUrl' => $actionUrl
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'message' => 'Student Not Found',
+            ]);
+        }
     }
+
 
     public function registerpaymentSuccess(Request $request)
     {
@@ -1319,7 +1406,7 @@ class PaymentController extends Controller
         $currency        =    $data[4]; // INR
         $trans_mode        =    $data[5]; // NB
         $stu_data        =    explode('_', $data[6]); // OD
-        $trans_time        =    $data[10]; // 2024-05-09 14:41:52
+        $trans_time        =    $data[10]; 
         $country_code        =    $data[11]; // IN
         $marchnt_id        =    $data[13]; // 1000605
         $bank_code = $data[8];             // SBIN
@@ -1341,6 +1428,7 @@ class PaymentController extends Controller
                 'bank_ref' => $bank_ref_no,
                 'pmnt_pay_type' => $stu_data[0],
                 'pmnt_modified_by' => $stu_data[1],
+                'is_double_verify' => 1,
             ]);
         }
 
@@ -1364,17 +1452,29 @@ class PaymentController extends Controller
         $decrypt = $aes->decrypt($request->encData, $key);
         $data = explode('|', $decrypt);
 
-        // dd($decrypt);
-
-        $user_id = explode('_', $data[6]);
-        $order_id        =    $data[0];
-        $trans_time = date('Y-m-d H:i:s');
+        $order_id = $data[0];
+        $trans_id = $data[1]; // 4984477659512
+        $trans_status = $data[2]; // SUCCESS
+        $trans_amount = $data[3];
+        $trans_mode = $data[5]; // NB
+        $stu_data = explode('_', $data[6]); // OD
+        $trans_time = $data[10]; // 2024-05-09 14:41:52
+        $country_code = $data[11]; // IN
+        $marchnt_id = $data[13]; // 1000605
+        $user_id = $stu_data[1];
 
         $payment_data = PaymentTransaction::where('order_id', $order_id)->first();
         if ($payment_data) {
             $payment_data->update([
-                'trans_details' => $decrypt,
-                'trans_time' => $trans_time
+                'trans_id' => $trans_id,
+                'trans_status' => $trans_status,
+                'trans_mode' => $trans_mode,
+                'trans_time' => $trans_time,
+                'country_code' => $country_code,
+                'marchnt_id' => $marchnt_id,
+                'trans_details' => $trans_details,
+                'pmnt_modified_by' => $user_id,
+                'is_double_verify' => 1,
             ]);
         }
 
@@ -1382,7 +1482,11 @@ class PaymentController extends Controller
         auditTrail($request->student_id, $message);
         studentActivite($request->student_id, $message);
 
-        return redirect()->route('registerpayment-fail', $user_id[1]);
+        return redirect()->route('registerpayment-fail',[
+            'user_id'=>$user_id,
+            'amount' => $trans_amount,
+
+        ]);
     }
     
 }

@@ -53,35 +53,12 @@ Route::get('payment-success-redirect/{trans_id}', function ($trans_id) {
 })->name('payment-success-redirect');
 
 // payment fail
-Route::get('registerpayment-fail/{user_id}', function ($user_id) {
-    $merchIdVal = env('SBI_MERCHANT_ID');
-    $actionUrl = env('SBI_PAYMENT_API');
-    $orderid = '';
-    for ($i = 0; $i < 10; $i++) {
-        $d = rand(1, 30) % 2;
-        $d = $d ? chr(rand(65, 90)) : chr(rand(48, 57));
-        $orderid .= $d;
-    }
-    $base_url = env('APP_URL') . '/payment/';
-    $success_url = "{$base_url}register_success";
-    $fail_url = "{$base_url}register_fail";
-    $key = env('SBI_PAYMENT_KEY');
-    $other = "REGISTERFEES_$user_id";
-    $marid = '5';
-    $merchant_order_num = $orderid;
-    $total_amount = env('REGISTER_FEES');
-    $requestParameter = "1000605|DOM|IN|INR|$total_amount|$other|$success_url|$fail_url|SBIEPAY|$merchant_order_num|$marid|NB|ONLINE|ONLINE";
-
-    $EncryptTrans = encryptedString($requestParameter, $key);
-    failPaymentPharmacy($orderid, $user_id, 'REGISTERFEES', $total_amount);
-
+Route::get('registerpayment-fail/{user_id}/{amount}', function ($user_id, $amount) {
     return view('redirect.registerpayment-fail', [
-        'actionUrl' => $actionUrl,
-        'EncryptTrans' => $EncryptTrans,
-        'merchIdVal' => $merchIdVal,
+        'user_id' => $user_id,
+        'amount' => $amount
     ]);
 })->name('registerpayment-fail');
-
 Route::get('payment-fail/{user_id}', function ($user_id) {
     $merchIdVal = env('SBI_MERCHANT_ID');
     $actionUrl = env('SBI_PAYMENT_API');
