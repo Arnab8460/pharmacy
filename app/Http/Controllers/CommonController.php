@@ -1494,403 +1494,6 @@ class CommonController extends Controller
     //     ], 200);
     // }
 
-    // public function registerstudent(Request $request)
-    // {
-    //     try{
-    //         $validated = Validator::make($request->all(),[
-    //             'student_first_name' => ['required'],
-    //             'student_middle_name' => ['nullable'],
-    //             'student_last_name' => ['required'],
-    //             'student_father_name' => ['required'],
-    //             'student_mother_name' => ['required'],
-    //             'student_dob' => ['required'],
-    //             'student_aadhar_no' => ['required', 'unique:pharmacy_register_student,s_aadhar_original'],
-    //             'student_phone' => ['required', 'digits:10', 'unique:pharmacy_register_student,s_phone'],
-    //             'student_email' => ['required', 'email', 'unique:pharmacy_register_student,s_email'],
-    //             'student_gender' => ['required'],
-    //             'student_religion' => ['required'],
-    //             'student_caste'=>['required'],
-    //             's_tfw' => ['required'],
-    //             's_ews' => ['required'],
-    //             's_llq' => ['required'],
-    //             's_exsm' => ['required'],
-    //             's_pwd' => ['required'],
-    //             's_gen_rank' => ['required'],
-    //             's_sc_rank' => ['required'],
-    //             's_st_rank' => ['required'],
-    //             's_obca_rank' => ['required'],
-    //             's_obcb_rank' => ['required'],
-    //             's_tfw_rank' => ['required'],
-    //             's_ews_rank' => ['required'],
-    //             's_llq_rank' => ['required'],
-    //             's_exsm_rank' => ['required'],
-    //             's_pwd_rank' => ['required'],
-    //             'student_photo' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
-    //             'student_sign' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
-    //             'student_home_dist' => ['required'],
-    //             'student_schooling_dist' => ['required'],
-    //             'student_state_id' => ['required'],
-    //             'student_alloted_category' => ['required'],
-    //             'student_alloted_round' => ['required'],
-    //             'student_choise_id' => ['required'],
-    //             'student_trade_code' => ['required'],
-    //             'student_inst_code' => ['required'],
-    //             'student_eligible_category' => ['required'],
-    //             'student_auto_rejected_round' => ['required'],
-    //             'student_rejected_by' => ['required'],
-    //             'student_address' => ['required'],
-    //             'student_police_station' => ['required'],
-    //             'student_post_office' => ['required'],
-    //             'student_pin_no' => ['required'],
-    //             'is_married' => ['required'],
-    //             'is_kanyashree' => ['required'],
-    //             's_admited_status' => ['required'],
-    //             's_auto_reject' => ['required'],
-    //             's_seat_block' => ['required'],
-    //             'last_round_adm_status' => ['required'],
-    //             'is_profile_updated' => ['required'],
-    //             'is_choice_fill_up' => ['required'],
-    //             'is_lock_manual' => ['required'],
-    //             'is_lock_auto' => ['required'],
-    //             'is_payment' => ['required'],
-    //             'is_choice_downloaded' => ['required'],
-    //             'is_upgrade_payment' => ['required'],
-    //             'is_allotment_accept' => ['required'],
-    //             'is_alloted' => ['required'],
-    //             'is_upgrade' => ['required'],
-    //             's_remarks' => ['required'],
-    //             'is_active' => ['required'],
-    //             's_uuid' => ['required'],
-    //             'is_registration_payment' => ['required'],
-    //             'is_registration_verified' => ['required'],
-    //             'physic_marks'=>['required'],
-    //             'chemistry_marks' => ['required'],
-    //             'biology_marks' => ['required'],
-    //             'mathematics_marks' => ['required'],
-    //             'exam_elgb_code'=>['required']
-    //         ]);
-
-    //         if($validated->fails()){
-    //             return response()->json([
-    //                 'error' => true,
-    //                 'message' => $validated->errors()->first()
-    //             ], 422);   
-    //         }
-
-    //         $currentDateTime = date('Y-m-d H:i:s');
-    //         $schedule = Schedule::where('sch_event', 'APPLICATION')
-    //             ->where('sch_round', 1)
-    //             ->first();
-    //         if (!$schedule || $currentDateTime < $schedule->sch_start_dt || $currentDateTime > $schedule->sch_end_dt) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Your date is expired. You can no longer submit the form.'
-    //             ], 400);
-    //         }
-    //         $year = date('Y');
-    //         $lastStudent = RegisterStudent::latest('s_id')->first();
-    //         if ($lastStudent && preg_match('/PHARMA' . $year . '(\d+)/', $lastStudent->s_appl_form_num, $matches)) {
-    //             $lastNumber = (int) $matches[1];
-    //             $nextNumber = $lastNumber + 1;
-    //         } else {
-    //             $nextNumber = 1;
-    //         }
-    //         // Generate the new application form number
-    //         $s_appl_form_num = 'PHARMA' . $year . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
-    //         $dob = new DateTime($request->student_dob);
-    //         $currentYear = date('Y');
-    //         $requiredDate = new DateTime("31-12-$currentYear");
-    //         $age = $dob->diff($requiredDate)->y;
-    //         if ($age < 17) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'The candidate must be at least 17 years old on or before 31st December of this year.'
-    //             ], 400);
-    //         }
-            
-    //         $fullAadhar = $request->student_aadhar_no;
-    //         $firstPart = substr($fullAadhar, 0, -4);   // First part to encrypt
-    //         $last4 = substr($fullAadhar, -4);          // Last 4 digits
-    //         $encryptedPart = hash_hmac('sha256', $firstPart, env('APP_KEY'));
-    //         $shortEncrypted = substr($encryptedPart, 0, 27);
-    //         $randomChar = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 1);
-    //         $maskedAadhar = $shortEncrypted . $randomChar . $last4;
-
-    //         $uuid = $request->s_uuid;
-    //         $firstPart = substr($uuid, 0, -4);   // Encryptable part
-    //         $last4 = substr($uuid, -4);          // Last 4 digits
-    //         $encryptedPart = hash_hmac('sha256', $firstPart, env('APP_KEY'));
-    //         $shortEncrypted = substr($encryptedPart, 0, 27);
-    //         $randomChar = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 1);
-    //         $maskedUUID = $shortEncrypted . $randomChar . $last4;
-
-    //         if(RegisterStudent::where('s_uuid',$maskedUUID)->exists()){
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'This UUID is already registered.'
-    //             ], 409);
-            
-    //         }
-    //         $student_photo = $request->file('student_photo')->store('uploads', 'public');
-    //         $student_sign = $request->file('student_sign')->store('uploads', 'public');
-    //         $register = RegisterStudent::create([
-    //             's_appl_form_num'=>$s_appl_form_num,
-    //             's_first_name'=>trim($request->student_first_name),
-    //             's_middle_name'=>trim($request->student_middle_name),
-    //             's_last_name'=>trim($request->student_last_name),
-    //             's_candidate_name'=>trim($request->student_first_name) 
-    //             . ($request->student_middle_name ? ' ' . trim($request->student_middle_name) : '') 
-    //             . ' ' . trim($request->student_last_name),
-    //             's_father_name'=>trim($request->student_father_name),
-    //             's_mother_name'=>trim($request->student_mother_name),
-    //             's_dob'=>$request->student_dob,
-    //             's_aadhar_no'=> $maskedAadhar,
-    //             's_aadhar_original'=>$fullAadhar,
-    //             's_phone'=>trim($request->student_phone),
-    //             's_email'=>trim($request->student_email),
-    //             's_gender'=>$request->student_gender,
-    //             's_religion'=>$request->student_religion,
-    //             's_caste'=>$request->student_caste,
-    //             's_tfw'=>$request->s_tfw,
-    //             's_ews'=>$request->s_ews,
-    //             's_llq_rank'=>$request->s_llq_rank,
-    //             's_llq'=>$request->s_llq,
-    //             's_exsm'=>$request->s_exsm,
-    //             's_pwd'=>$request->s_pwd,
-    //             's_gen_rank'=>$request->s_gen_rank,
-    //             's_sc_rank'=>$request->s_sc_rank,
-    //             's_st_rank'=>$request->s_st_rank,
-    //             's_obca_rank'=>$request->s_obca_rank,
-    //             's_obcb_rank'=>$request->s_obcb_rank,
-    //             's_tfw_rank'=>$request->s_tfw_rank,
-    //             's_ews_rank'=>$request->s_ews_rank,
-    //             's_exsm_rank'=>$request->s_exsm_rank,
-    //             's_pwd_rank'=>$request->s_pwd_rank,
-    //             's_photo' => $student_photo,
-    //             's_sign' => $student_sign,
-    //             // 's_home_district'=>$request->student_home_dist,
-    //             's_home_district'=> trim($request->student_home_dist),
-    //             's_schooling_district'=>trim($request->student_schooling_dist),
-    //             's_state_id'=>$request->student_state_id,
-    //             's_alloted_category'=>$request->student_alloted_category,
-    //             's_alloted_round'=>$request->student_alloted_round,
-    //             's_choice_id'=>$request->student_choise_id,
-    //             's_trade_code'=>$request->student_trade_code,
-    //             's_inst_code'=>$request->student_inst_code,
-    //             's_eligible_category'=>$request->student_eligible_category,
-    //             's_auto_reject_round'=>$request->student_auto_rejected_round,
-    //             's_rejected_by'=>$request->student_rejected_by,
-    //             // 'address'=>$request->student_address,
-    //             'address'=>trim($request->student_address),
-    //             'ps'=>$request->student_police_station,
-    //             'po'=>$request->student_post_office,
-    //             'pin'=>trim($request->student_pin_no),
-    //             'is_married'=>$request->is_married,
-    //             'is_kanyashree'=>$request->is_kanyashree,
-    //             // 'is_kanyashree' => isset($is_kanyashree) ? $is_kanyashree : null,
-    //             's_admited_status'=>$request->s_admited_status,
-    //             's_auto_reject'=>$request->s_auto_reject,
-    //             's_seat_block'=>$request->s_seat_block,
-    //             'last_round_adm_status'=>$request->last_round_adm_status,
-    //             'is_profile_updated'=>$request->is_profile_updated,
-    //             'is_choice_fill_up'=>$request->is_choice_fill_up,
-    //             'is_lock_manual'=>$request->is_lock_manual,
-    //             'is_lock_auto'=>$request->is_lock_auto,
-    //             'is_payment'=>$request->is_payment,
-    //             'is_choice_downloaded'=>$request->is_choice_downloaded,
-    //             'is_upgrade_payment'=>$request->is_upgrade_payment,
-    //             'is_allotment_accept'=>$request->is_allotment_accept,
-    //             'is_alloted'=>$request->is_alloted,
-    //             'is_upgrade'=>$request->is_upgrade,
-    //             's_remarks'=>$request->s_remarks,
-    //             'is_active'=>$request->is_active,
-    //             's_uuid'=>$maskedUUID,
-    //             'is_registration_payment'=>$request->is_registration_payment,
-    //             'is_registration_verified'=>$request->is_registration_verified,
-    //             'physic_marks'=>$request->physic_marks,
-    //             'chemistry_marks'=>$request->chemistry_marks,
-    //             'biology_marks'=>$request->biology_marks,
-    //             'mathematics_marks'=>$request->mathematics_marks, 
-    //         ]);
-
-    //         if (!$register) {
-    //             return response()->json(['success' => false, 'message' => 'Failed to insert data.'], 500);
-    //         }   
-            
-    //         $eligibility = PharmacyAppl_ElgbExam::create([
-    //             'exam_appl_form_num' => $s_appl_form_num,
-    //             'exam_elgb_code' => $request->exam_elgb_code
-    //         ]);
-
-    //         if (!$eligibility) {
-    //             DB::rollBack();
-    //             return response()->json(['success' => false, 'message' => 'Failed to insert eligibility data.'], 500);
-    //         }
-
-    //         DB::commit();
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Form submitted successfully!',
-    //             'data' => [
-    //                 'student' => $register,
-    //                 'eligibility' => $eligibility
-    //             ]
-    //         ], 201);
-
-    //     } catch (ValidationException $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    public function eligibility(Request $request)
-    {
-        $course_code=$request->course_code;
-        $eligible_list=PharmacyEligiblity::where('course_code',$course_code)->where('is_active','1')->get();
-        if (sizeof($eligible_list) > 0) {
-            $reponse = array(
-                'error'     =>  false,
-                'message'   =>  'Data found',
-                'count'     =>   sizeof($eligible_list),
-                'eligibilities'    =>  EligibilityResource::collection($eligible_list)
-            );
-            return response(json_encode($reponse), 200);
-        } else {
-            $reponse = array(
-                'error'     =>  true,
-                'message'   =>  'No data available'
-            );
-            return response(json_encode($reponse), 404);
-        }
-
-
-    }
-    public function getregisterdata($id)
-    {
-        if (!is_numeric($id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid ID provided'
-            ], 400);
-        }
-        $register = RegisterStudent::where('s_id', $id)->first();
-        if (!$register) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No data found'
-            ], 404);
-        }
-        return response()->json([
-            'success' => true,
-            'data' => [
-                's_first_name'=>$register->s_first_name,
-                's_middle_name' =>$register->s_middle_name,
-                's_last_name'=>$register->s_last_name,
-                's_candidate_name'=>$register->s_candidate_name,
-                's_father_name'=>$register->s_father_name,
-                's_mother_name'=>$register->s_mother_name,
-                's_dob'=>$register->s_dob,
-                's_aadhar_original'=>$register->s_aadhar_original,
-                's_phone'=>$register->s_phone,
-                's_email'=>$register->s_email,
-                's_gender'=>$register->s_gender,
-                's_religion'=>$register->s_religion,
-                's_caste'=>$register->s_caste,
-                's_photo'=>URL::to("storage/{$register->s_photo}"),
-                's_sign'=>URL::to("storage/{$register->s_sign}"),
-                's_home_district'=>$register->s_home_district,
-                's_schooling_district'=>$register->s_schooling_district,
-                's_state_id'=>$register->s_state_id,
-                's_alloted_category'=>$register->s_alloted_category,
-                's_alloted_round'=>$register->s_alloted_round,
-                's_choice_id'=>$register->s_choice_id,
-                's_trade_code'=>$register->s_trade_code,
-                's_inst_code'=>$register->s_inst_code,
-                's_eligible_category'=>$register->s_eligible_category,
-                'address'=>$register->address,
-                'ps'=>$register->ps,
-                'po'=>$register->po,
-                'pin'=>$register->pin,
-                'is_married'=>$register->is_married,
-                'is_kanyashree'=>$register->is_kanyashree,
-                's_uuid'=>$register->s_uuid,
-                'physic_marks'=>$register->physic_marks,
-                'chemistry_marks'=>$register->chemistry_marks,
-                'biology_marks'=>$register->biology_marks,
-                'mathematics_marks'=>$register->mathematics_marks
-                
-            ]
-        ], 200);
-    }
-    public function downloadReceipt($trans_id)
-    {
-        try{
-            $registerstudent = RegisterStudent::select(
-                    's_id as student_id',
-                    's_appl_form_num as application_form_number',
-                    's_candidate_name as candidate_name',
-                    's_father_name as father_name',
-                    's_mother_name as mother_name',
-                    's_dob as date_of_birth',
-                    's_aadhar_original as aadhar_number',
-                    's_phone as phone_number',
-                    's_email as email',
-                    's_gender as gender',
-                    's_religion as religion',
-                    's_caste as caste',
-                    's_gen_rank as general_rank',
-            )->where('s_appl_form_num', $trans_id)
-            ->first();
-            $payment = PaymentTransaction::where('pmnt_stud_id', $registerstudent->student_id)
-                ->where('pmnt_pay_type', 'REGISTERFEES')
-                ->where('trans_status', 'SUCCESS')
-                ->first();
-            // if($payment){
-            //     $pdf = PDF::loadView('exports.registration_receipt',[
-            //         'registerstudent' => $registerstudent,
-            //         'payment' => $payment
-            //     ]);
-            //     return $pdf->setPaper('a4', 'portrait')
-            //         ->setOption(['defaultFont' => 'sans-serif'])
-            //         ->stream('registration_receipt.pdf');
-                
-            // }else{
-            //     return response()->json([
-            //         'error' =>  true,
-            //         'message' => 'No payment found'
-            //     ], 400);
-            // }
-
-            if ($payment) {
-                $pdf = PDF::loadView('exports.registration_receipt', [
-                    'registerstudent' => $registerstudent,
-                    'payment' => $payment
-                ]);
-                return $pdf->download('registration_receipt.pdf');
-            } else {
-                return response()->json([
-                    'error' => true, 
-                    'message' => 'No payment found'],
-                    404);
-            }
-
-        }catch (Exception $e) {
-            generateLaravelLog($e);
-            return response()->json([
-                'error' =>  true,
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
     public function registerstudent(Request $request)
     {
         try{
@@ -2123,7 +1726,6 @@ class CommonController extends Controller
                 DB::rollBack();
                 return response()->json(['success' => false, 'message' => 'Failed to insert eligibility data.'], 500);
             }
-            Mail::to($register->s_email)->send(new StudentRegisteredMail($register));
 
             DB::commit();
             return response()->json([
@@ -2146,6 +1748,146 @@ class CommonController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function eligibility(Request $request)
+    {
+        $course_code=$request->course_code;
+        $eligible_list=PharmacyEligiblity::where('course_code',$course_code)->where('is_active','1')->get();
+        if (sizeof($eligible_list) > 0) {
+            $reponse = array(
+                'error'     =>  false,
+                'message'   =>  'Data found',
+                'count'     =>   sizeof($eligible_list),
+                'eligibilities'    =>  EligibilityResource::collection($eligible_list)
+            );
+            return response(json_encode($reponse), 200);
+        } else {
+            $reponse = array(
+                'error'     =>  true,
+                'message'   =>  'No data available'
+            );
+            return response(json_encode($reponse), 404);
+        }
+
+
+    }
+    public function getregisterdata($id)
+    {
+        if (!is_numeric($id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid ID provided'
+            ], 400);
+        }
+        $register = RegisterStudent::where('s_id', $id)->first();
+        if (!$register) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No data found'
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => [
+                's_first_name'=>$register->s_first_name,
+                's_middle_name' =>$register->s_middle_name,
+                's_last_name'=>$register->s_last_name,
+                's_candidate_name'=>$register->s_candidate_name,
+                's_father_name'=>$register->s_father_name,
+                's_mother_name'=>$register->s_mother_name,
+                's_dob'=>$register->s_dob,
+                's_aadhar_original'=>$register->s_aadhar_original,
+                's_phone'=>$register->s_phone,
+                's_email'=>$register->s_email,
+                's_gender'=>$register->s_gender,
+                's_religion'=>$register->s_religion,
+                's_caste'=>$register->s_caste,
+                's_photo'=>URL::to("storage/{$register->s_photo}"),
+                's_sign'=>URL::to("storage/{$register->s_sign}"),
+                's_home_district'=>$register->s_home_district,
+                's_schooling_district'=>$register->s_schooling_district,
+                's_state_id'=>$register->s_state_id,
+                's_alloted_category'=>$register->s_alloted_category,
+                's_alloted_round'=>$register->s_alloted_round,
+                's_choice_id'=>$register->s_choice_id,
+                's_trade_code'=>$register->s_trade_code,
+                's_inst_code'=>$register->s_inst_code,
+                's_eligible_category'=>$register->s_eligible_category,
+                'address'=>$register->address,
+                'ps'=>$register->ps,
+                'po'=>$register->po,
+                'pin'=>$register->pin,
+                'is_married'=>$register->is_married,
+                'is_kanyashree'=>$register->is_kanyashree,
+                's_uuid'=>$register->s_uuid,
+                'physic_marks'=>$register->physic_marks,
+                'chemistry_marks'=>$register->chemistry_marks,
+                'biology_marks'=>$register->biology_marks,
+                'mathematics_marks'=>$register->mathematics_marks
+                
+            ]
+        ], 200);
+    }
+    public function downloadReceipt($trans_id)
+    {
+        try{
+            $registerstudent = RegisterStudent::select(
+                    's_id as student_id',
+                    's_appl_form_num as application_form_number',
+                    's_candidate_name as candidate_name',
+                    's_father_name as father_name',
+                    's_mother_name as mother_name',
+                    's_dob as date_of_birth',
+                    's_aadhar_original as aadhar_number',
+                    's_phone as phone_number',
+                    's_email as email',
+                    's_gender as gender',
+                    's_religion as religion',
+                    's_caste as caste',
+                    's_gen_rank as general_rank',
+            )->where('s_appl_form_num', $trans_id)
+            ->first();
+            $payment = PaymentTransaction::where('pmnt_stud_id', $registerstudent->student_id)
+                ->where('pmnt_pay_type', 'REGISTERFEES')
+                ->where('trans_status', 'SUCCESS')
+                ->first();
+            // if($payment){
+            //     $pdf = PDF::loadView('exports.registration_receipt',[
+            //         'registerstudent' => $registerstudent,
+            //         'payment' => $payment
+            //     ]);
+            //     return $pdf->setPaper('a4', 'portrait')
+            //         ->setOption(['defaultFont' => 'sans-serif'])
+            //         ->stream('registration_receipt.pdf');
+                
+            // }else{
+            //     return response()->json([
+            //         'error' =>  true,
+            //         'message' => 'No payment found'
+            //     ], 400);
+            // }
+
+            if ($payment) {
+                $pdf = PDF::loadView('exports.registration_receipt', [
+                    'registerstudent' => $registerstudent,
+                    'payment' => $payment
+                ]);
+                return $pdf->download('registration_receipt.pdf');
+            } else {
+                return response()->json([
+                    'error' => true, 
+                    'message' => 'No payment found'],
+                    404);
+            }
+
+        }catch (Exception $e) {
+            generateLaravelLog($e);
+            return response()->json([
+                'error' =>  true,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
